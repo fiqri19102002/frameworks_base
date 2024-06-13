@@ -53,7 +53,6 @@ static struct {
 
 static sp<Looper> gLooper;
 static jobject gCallback;
-static sp<IKeystoreService> gService;
 
 class CallbackHandler : public MessageHandler {
     int type;
@@ -71,13 +70,12 @@ public:
 
 static void notifyKeystore(uint8_t *auth_token, size_t auth_token_length) {
     if (auth_token != NULL && auth_token_length > 0) {
-        if(gService == NULL) {
-            sp<IServiceManager> sm = defaultServiceManager();
-            sp<IBinder> binder = sm->getService(String16("android.security.keystore"));
-            gService = interface_cast<IKeystoreService>(binder);
-        }
-        if (gService != NULL) {
-            status_t ret = gService->addAuthToken(auth_token, auth_token_length);
+        // TODO: cache service?
+        sp<IServiceManager> sm = defaultServiceManager();
+        sp<IBinder> binder = sm->getService(String16("android.security.keystore"));
+        sp<IKeystoreService> service = interface_cast<IKeystoreService>(binder);
+        if (service != NULL) {
+            status_t ret = service->addAuthToken(auth_token, auth_token_length);
             if (ret != ResponseCode::NO_ERROR) {
                 ALOGE("Falure sending auth token to KeyStore: %d", ret);
             }
