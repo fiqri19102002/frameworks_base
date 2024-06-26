@@ -37,7 +37,7 @@ import android.os.UserManager
 import android.provider.Settings
 import android.widget.Toast
 import androidx.annotation.VisibleForTesting
-import com.android.app.tracing.TraceUtils.Companion.launch
+import com.android.app.tracing.coroutines.launch
 import com.android.systemui.dagger.SysUISingleton
 import com.android.systemui.dagger.qualifiers.Application
 import com.android.systemui.dagger.qualifiers.Background
@@ -263,11 +263,7 @@ constructor(
      * If the shortcut entry `android:enabled` is set to `true`, the shortcut will be visible in the
      * Widget Picker to all users.
      */
-    // TODO(b/316332684)
-    @Suppress("UNREACHABLE_CODE")
     fun setNoteTaskShortcutEnabled(value: Boolean, user: UserHandle) {
-        return // shortcut should not be enabled until additional features are implemented.
-
         if (!userManager.isUserUnlocked(user)) {
             debugLog { "setNoteTaskShortcutEnabled call but user locked: user=$user" }
             return

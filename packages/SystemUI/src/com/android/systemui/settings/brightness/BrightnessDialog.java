@@ -21,6 +21,8 @@ import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
 import static android.view.WindowManagerPolicyConstants.EXTRA_FROM_BRIGHTNESS_KEY;
 
+import static com.android.systemui.util.kotlin.JavaAdapterKt.collectFlow;
+
 import android.app.Activity;
 import android.content.res.Configuration;
 import android.graphics.Rect;
@@ -87,6 +89,17 @@ public class BrightnessDialog extends Activity {
         if (mShadeInteractor.isQsExpanded().getValue()) {
             finish();
         }
+
+        View view = findViewById(R.id.brightness_mirror_container);
+        if (view != null) {
+            collectFlow(view, mShadeInteractor.isQsExpanded(), this::onShadeStateChange);
+        }
+    }
+
+    private void onShadeStateChange(boolean isQsExpanded) {
+        if (isQsExpanded) {
+            requestFinish();
+        }
     }
 
     private void setWindowAttributes() {
@@ -135,7 +148,7 @@ public class BrightnessDialog extends Activity {
         controller.init();
         frame.addView(controller.getRootView(), MATCH_PARENT, WRAP_CONTENT);
 
-        mBrightnessController = mBrightnessControllerFactory.create(controller.getIconView(), controller);
+        mBrightnessController = mBrightnessControllerFactory.create(controller);
 
         Configuration configuration = getResources().getConfiguration();
         int orientation = configuration.orientation;

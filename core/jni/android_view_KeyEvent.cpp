@@ -94,26 +94,33 @@ static struct {
 
 // ----------------------------------------------------------------------------
 
-jobject android_view_KeyEvent_fromNative(JNIEnv* env, const KeyEvent& event) {
+ScopedLocalRef<jobject> android_view_KeyEvent_obtainAsCopy(JNIEnv* env, const KeyEvent& event) {
     ScopedLocalRef<jbyteArray> hmac = toJbyteArray(env, event.getHmac());
-    jobject eventObj =
-            env->CallStaticObjectMethod(gKeyEventClassInfo.clazz, gKeyEventClassInfo.obtain,
-                                        event.getId(), event.getDownTime(), event.getEventTime(),
-                                        event.getAction(), event.getKeyCode(),
-                                        event.getRepeatCount(), event.getMetaState(),
-                                        event.getDeviceId(), event.getScanCode(), event.getFlags(),
-                                        event.getSource(), event.getDisplayId(), hmac.get(),
-                                        nullptr);
+    ScopedLocalRef<jobject>
+            eventObj(env,
+                     env->CallStaticObjectMethod(gKeyEventClassInfo.clazz,
+                                                 gKeyEventClassInfo.obtain, event.getId(),
+                                                 event.getDownTime(), event.getEventTime(),
+                                                 event.getAction(), event.getKeyCode(),
+                                                 event.getRepeatCount(), event.getMetaState(),
+                                                 event.getDeviceId(), event.getScanCode(),
+                                                 event.getFlags(), event.getSource(),
+                                                 event.getDisplayId(), hmac.get(), nullptr));
     if (env->ExceptionCheck()) {
         ALOGE("An exception occurred while obtaining a key event.");
         LOGE_EX(env);
         env->ExceptionClear();
-        return NULL;
+        return ScopedLocalRef<jobject>(env);
     }
     return eventObj;
 }
 
-KeyEvent android_view_KeyEvent_toNative(JNIEnv* env, jobject eventObj) {
+jobject android_view_KeyEvent_fromNative(JNIEnv* env, const KeyEvent& event)
+{
+    return android_view_KeyEvent_obtainAsCopy(env, event).release();
+}
+
+KeyEvent android_view_KeyEvent_obtainAsCopy(JNIEnv* env, jobject eventObj) {
     jint id = env->GetIntField(eventObj, gKeyEventClassInfo.mId);
     jint deviceId = env->GetIntField(eventObj, gKeyEventClassInfo.mDeviceId);
     jint source = env->GetIntField(eventObj, gKeyEventClassInfo.mSource);
@@ -136,6 +143,11 @@ KeyEvent android_view_KeyEvent_toNative(JNIEnv* env, jobject eventObj) {
     event.initialize(id, deviceId, source, displayId, *hmac, action, flags, keyCode, scanCode,
                      metaState, repeatCount, downTime, eventTime);
     return event;
+}
+
+KeyEvent android_view_KeyEvent_toNative(JNIEnv* env, jobject eventObj)
+{
+    return android_view_KeyEvent_obtainAsCopy(env, eventObj);
 }
 
 status_t android_view_KeyEvent_recycle(JNIEnv* env, jobject eventObj) {

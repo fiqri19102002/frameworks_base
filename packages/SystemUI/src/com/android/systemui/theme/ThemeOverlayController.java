@@ -20,6 +20,7 @@ import static android.util.TypedValue.TYPE_INT_COLOR_ARGB8;
 
 import static com.android.systemui.Flags.themeOverlayControllerWakefulnessDeprecation;
 import static com.android.systemui.keyguard.WakefulnessLifecycle.WAKEFULNESS_ASLEEP;
+import static com.android.systemui.shared.Flags.enableHomeDelay;
 import static com.android.systemui.theme.ThemeOverlayApplier.COLOR_SOURCE_HOME;
 import static com.android.systemui.theme.ThemeOverlayApplier.COLOR_SOURCE_LOCK;
 import static com.android.systemui.theme.ThemeOverlayApplier.COLOR_SOURCE_PRESET;
@@ -31,6 +32,7 @@ import static com.android.systemui.theme.ThemeOverlayApplier.OVERLAY_COLOR_INDEX
 import static com.android.systemui.theme.ThemeOverlayApplier.OVERLAY_COLOR_SOURCE;
 import static com.android.systemui.theme.ThemeOverlayApplier.TIMESTAMP_FIELD;
 
+import android.app.ActivityManager;
 import android.app.UiModeManager;
 import android.app.WallpaperColors;
 import android.app.WallpaperManager;
@@ -125,6 +127,8 @@ import javax.inject.Inject;
 @SysUISingleton
 public class ThemeOverlayController implements CoreStartable, Dumpable {
     protected static final String TAG = "ThemeOverlayController";
+    protected static final String OVERLAY_BERRY_BLACK_THEME =
+            "net.pixelos.overlay.customization.blacktheme";
     private static final boolean DEBUG = true;
 
     private final ThemeOverlayApplier mThemeManager;
@@ -144,6 +148,7 @@ public class ThemeOverlayController implements CoreStartable, Dumpable {
     // Current wallpaper colors associated to a user.
     private final SparseArray<WallpaperColors> mCurrentColors = new SparseArray<>();
     private final WallpaperManager mWallpaperManager;
+    private final ActivityManager mActivityManager;
     @VisibleForTesting
     protected ColorScheme mColorScheme;
     // If fabricated overlays were already created for the current theme.
@@ -433,7 +438,8 @@ public class ThemeOverlayController implements CoreStartable, Dumpable {
             JavaAdapter javaAdapter,
             KeyguardTransitionInteractor keyguardTransitionInteractor,
             ConfigurationController configurationController,
-            UiModeManager uiModeManager) {
+            UiModeManager uiModeManager,
+            ActivityManager activityManager) {
         mContext = context;
         mIsMonetEnabled = featureFlags.isEnabled(Flags.MONET);
         mIsFidelityEnabled = featureFlags.isEnabled(Flags.COLOR_FIDELITY);
@@ -453,6 +459,7 @@ public class ThemeOverlayController implements CoreStartable, Dumpable {
         mKeyguardTransitionInteractor = keyguardTransitionInteractor;
         mConfigurationController = configurationController;
         mUiModeManager = uiModeManager;
+        mActivityManager = activityManager;
         dumpManager.registerDumpable(TAG, this);
     }
 
@@ -495,8 +502,9 @@ public class ThemeOverlayController implements CoreStartable, Dumpable {
             // Force reload so that we update even when the main color has not changed
             reevaluateSystemTheme(true /* forceReload */);
         });
+
         mSecureSettings.registerContentObserverForUser(
-                Settings.Secure.getUriFor(Settings.Secure.SYSTEM_BLACK_THEME),
+                Settings.Secure.getUriFor(Settings.Secure.BERRY_BLACK_THEME),
                 false,
                 new ContentObserver(mBgHandler) {
                     @Override
@@ -509,11 +517,6 @@ public class ThemeOverlayController implements CoreStartable, Dumpable {
                         if (!mDeviceProvisionedController.isUserSetup(userId)) {
                             Log.i(TAG, "Theme application deferred when setting changed.");
                             mDeferredThemeEvaluation = true;
-                            return;
-                        }
-                        if (mSkipSettingChange) {
-                            if (DEBUG) Log.d(TAG, "Skipping setting change");
-                            mSkipSettingChange = false;
                             return;
                         }
                         reevaluateSystemTheme(true /* forceReload */);
@@ -863,6 +866,14 @@ public class ThemeOverlayController implements CoreStartable, Dumpable {
             categoryToPackage.put(OVERLAY_CATEGORY_DYNAMIC_COLOR, mDynamicOverlay.getIdentifier());
         }
 
+        boolean isBlackMode = (Settings.Secure.getIntForUser(
+                mContext.getContentResolver(), Settings.Secure.BERRY_BLACK_THEME,
+                0, currentUser) == 1) && isNightMode();
+        if (categoryToPackage.containsKey(OVERLAY_CATEGORY_SYSTEM_PALETTE) && isBlackMode) {
+            OverlayIdentifier blackTheme = new OverlayIdentifier(OVERLAY_BERRY_BLACK_THEME);
+            categoryToPackage.put(OVERLAY_CATEGORY_SYSTEM_PALETTE, blackTheme);
+        }
+
         Set<UserHandle> managedProfiles = new HashSet<>();
         for (UserInfo userInfo : mUserManager.getEnabledProfiles(currentUser)) {
             if (userInfo.isProfile()) {
@@ -870,30 +881,31 @@ public class ThemeOverlayController implements CoreStartable, Dumpable {
             }
         }
 
+        final Runnable onCompleteCallback = !enableHomeDelay()
+                ? () -> {}
+                : () -> {
+                    Log.d(TAG, "ThemeHomeDelay: ThemeOverlayController ready");
+                    mActivityManager.setThemeOverlayReady(currentUser);
+                };
+
         if (DEBUG) {
             Log.d(TAG, "Applying overlays: " + categoryToPackage.keySet().stream()
                     .map(key -> key + " -> " + categoryToPackage.get(key)).collect(
                             Collectors.joining(", ")));
         }
 
-        boolean nightMode = (mContext.getResources().getConfiguration().uiMode
-                & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES;
-        boolean isBlackTheme = mSecureSettings.getInt(Settings.Secure.SYSTEM_BLACK_THEME, 0) == 1
-                                && nightMode;
-
-        mThemeManager.setIsBlackTheme(isBlackTheme);
+        FabricatedOverlay[] fOverlays = null;
 
         if (mNeedsOverlayCreation) {
             mNeedsOverlayCreation = false;
-            mThemeManager.applyCurrentUserOverlays(categoryToPackage, new FabricatedOverlay[]{
+            fOverlays = new FabricatedOverlay[]{
                     mSecondaryOverlay, mNeutralOverlay, mDynamicOverlay
-            }, currentUser, managedProfiles);
-        } else {
-            mThemeManager.applyCurrentUserOverlays(categoryToPackage, null, currentUser,
-                    managedProfiles);
+            };
         }
 
-        mThemeManager.applyBlackTheme(isBlackTheme);
+        mThemeManager.applyCurrentUserOverlays(categoryToPackage, fOverlays, currentUser,
+                managedProfiles, onCompleteCallback);
+
     }
 
     private Style fetchThemeStyleFromSetting() {
