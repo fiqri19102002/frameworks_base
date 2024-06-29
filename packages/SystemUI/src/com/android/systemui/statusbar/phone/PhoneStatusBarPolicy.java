@@ -425,11 +425,7 @@ public class PhoneStatusBarPolicy
 
     private NfcAdapter getAdapter() {
         if (mAdapter == null) {
-            try {
-                mAdapter = NfcAdapter.getNfcAdapter(mContext);
-            } catch (UnsupportedOperationException e) {
-                mAdapter = null;
-            }
+            mAdapter = NfcAdapter.getDefaultAdapter(mContext.getApplicationContext());
         }
         return mAdapter;
     }
