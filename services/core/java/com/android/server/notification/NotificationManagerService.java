@@ -776,8 +776,6 @@ public class NotificationManagerService extends SystemService {
     // Broadcast intent receiver for notification permissions review-related intents
     private ReviewNotificationPermissionsReceiver mReviewNotificationPermissionsReceiver;
 
-    private boolean mSoundVibScreenOn;
-
     static class Archive {
         final SparseArray<Boolean> mEnabled;
         final int mBufferSize;
@@ -2172,8 +2170,6 @@ public class NotificationManagerService extends SystemService {
                 = Settings.Secure.getUriFor(Settings.Secure.LOCK_SCREEN_SHOW_NOTIFICATIONS);
         private final Uri SHOW_NOTIFICATION_SNOOZE
                 = Settings.Secure.getUriFor(Settings.Secure.SHOW_NOTIFICATION_SNOOZE);
-        private final Uri NOTIFICATION_SOUND_VIB_SCREEN_ON
-                = Settings.System.getUriFor(Settings.System.NOTIFICATION_SOUND_VIB_SCREEN_ON);
 
         SettingsObserver(Handler handler) {
             super(handler);
@@ -2204,8 +2200,6 @@ public class NotificationManagerService extends SystemService {
             resolver.registerContentObserver(SHOW_NOTIFICATION_SNOOZE,
                     false, this, UserHandle.USER_ALL);
 
-            resolver.registerContentObserver(NOTIFICATION_SOUND_VIB_SCREEN_ON,
-                    false, this, UserHandle.USER_ALL);
             update(null);
         }
 
@@ -2249,11 +2243,6 @@ public class NotificationManagerService extends SystemService {
             }
             if (uri == null || LOCK_SCREEN_SHOW_NOTIFICATIONS.equals(uri)) {
                 mPreferencesHelper.updateLockScreenShowNotifications();
-            }
-            if (uri == null || NOTIFICATION_SOUND_VIB_SCREEN_ON.equals(uri)) {
-                mSoundVibScreenOn = Settings.System.getIntForUser(resolver,
-                        Settings.System.NOTIFICATION_SOUND_VIB_SCREEN_ON, 1,
-                        UserHandle.USER_CURRENT) == 1;
             }
             if (SHOW_NOTIFICATION_SNOOZE.equals(uri)) {
                 final boolean snoozeEnabled = Settings.Secure.getIntForUser(resolver,
@@ -9209,8 +9198,7 @@ public class NotificationManagerService extends SystemService {
         }
 
         if (aboveThreshold && isNotificationForCurrentUser(record)) {
-            boolean skipSound = mScreenOn && !mSoundVibScreenOn;
-            if (mSystemReady && mAudioManager != null && !skipSound) {
+            if (mSystemReady && mAudioManager != null) {
                 Uri soundUri = record.getSound();
                 hasValidSound = soundUri != null && !Uri.EMPTY.equals(soundUri);
                 VibrationEffect vibration = record.getVibration();
