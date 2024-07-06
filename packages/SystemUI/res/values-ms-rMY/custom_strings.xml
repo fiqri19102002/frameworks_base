@@ -26,10 +26,6 @@
     <string name="quick_settings_powershare_off_powersave_label">PowerShare nirwayar dimatikan\nPenjimatan bateri</string>
     <string name="quick_settings_powershare_off_low_battery_label">PowerShare nirwayar dimatikan\nBateri terlalu lemah</string>
     <string name="quick_settings_powershare_enabled_label">PowerShare nirwayar dibolehkan</string>
-    <!-- QuickSettings: InternetDialog: Summary for how many devices are connected to the hotspot [CHAR LIMIT=NONE] -->
-    <plurals name="quick_settings_internet_hotspot_summary_num_devices">
-        <item quantity="other">%d peranti disambungkan</item>
-    </plurals>
     <!-- Advanced Reboot -->
     <string name="global_action_restart_advanced">Tambahan</string>
     <string name="global_action_restart_recovery">Mod Pemulihan</string>

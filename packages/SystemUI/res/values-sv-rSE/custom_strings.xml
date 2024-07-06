@@ -26,11 +26,6 @@
     <string name="quick_settings_powershare_off_powersave_label">Trådlös strömdelning av\nBatterisparläge</string>
     <string name="quick_settings_powershare_off_low_battery_label">Trådlös strömdelning av\nLåg batterinivå</string>
     <string name="quick_settings_powershare_enabled_label">Trådlös strömdelning aktiverad</string>
-    <!-- QuickSettings: InternetDialog: Summary for how many devices are connected to the hotspot [CHAR LIMIT=NONE] -->
-    <plurals name="quick_settings_internet_hotspot_summary_num_devices">
-        <item quantity="one">%d enheter är anslutna</item>
-        <item quantity="other">%d enheter är anslutna</item>
-    </plurals>
     <!-- Advanced Reboot -->
     <string name="global_action_restart_advanced">Avancerat</string>
     <string name="global_action_restart_recovery">Återställning</string>

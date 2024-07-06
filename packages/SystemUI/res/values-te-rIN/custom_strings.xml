@@ -26,11 +26,6 @@
     <string name="quick_settings_powershare_off_powersave_label">వైర్లెస్ పవర్షేర్ ఆఫ్\nబాటరీ టూ లౌ</string>
     <string name="quick_settings_powershare_off_low_battery_label">వైర్లెస్ పవర్షేర్ ఆఫ్\nబ్యాటరీ చాలా తక్కువ</string>
     <string name="quick_settings_powershare_enabled_label">వైర్లెస్ పవర్షేర్ సౌకర్యం ఆన్ చేయబడివుంది</string>
-    <!-- QuickSettings: InternetDialog: Summary for how many devices are connected to the hotspot [CHAR LIMIT=NONE] -->
-    <plurals name="quick_settings_internet_hotspot_summary_num_devices">
-        <item quantity="one">%d పరికరం కనెక్ట్ చేయబడింది</item>
-        <item quantity="other">%d పరికరం కనెక్ట్ చేయబడింది</item>
-    </plurals>
     <!-- Advanced Reboot -->
     <string name="global_action_restart_advanced">అధునాతన</string>
     <string name="global_action_restart_recovery">రికవరీ</string>

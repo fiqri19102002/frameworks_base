@@ -26,13 +26,6 @@
     <string name="quick_settings_powershare_off_powersave_label">Bezprzewodowe PowerShare wyłączone \n Oszczędzanie baterii</string>
     <string name="quick_settings_powershare_off_low_battery_label">Ładowanie zwrotne PowerShare wyłączone\nNaładuj baterię</string>
     <string name="quick_settings_powershare_enabled_label">Bezprzewodowe ładowanie PowerShare jest włączone</string>
-    <!-- QuickSettings: InternetDialog: Summary for how many devices are connected to the hotspot [CHAR LIMIT=NONE] -->
-    <plurals name="quick_settings_internet_hotspot_summary_num_devices">
-        <item quantity="one">Połączone urządzenia: %d</item>
-        <item quantity="few">%d połączonych urządzeń</item>
-        <item quantity="many">%d połączonych urządzeń</item>
-        <item quantity="other">%d połączonych urządzeń</item>
-    </plurals>
     <!-- Advanced Reboot -->
     <string name="global_action_restart_advanced">Zaawansowane</string>
     <string name="global_action_restart_recovery">Tryb recovery</string>
