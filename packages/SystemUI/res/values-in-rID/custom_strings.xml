@@ -16,6 +16,10 @@
     <string name="quick_settings_heads_up_label">Notifikasi mengambang</string>
     <string name="accessibility_quick_settings_heads_up_off">Notifikasi mengambang nonaktif.</string>
     <string name="accessibility_quick_settings_heads_up_on">Notifikasi mengambang aktif.</string>
+    <!-- Sync QS tile -->
+    <string name="quick_settings_sync_label">Sinkronisasi</string>
+    <string name="accessibility_quick_settings_sync_off">Sinkronisasi nonaktif.</string>
+    <string name="accessibility_quick_settings_sync_on">Sinkronisasi aktif.</string>
     <!-- AOD QS tile -->
     <string name="quick_settings_aod_label">AOD</string>
     <string name="quick_settings_aod_off_powersave_label">AOD tidak aktif\nPenghemat baterai</string>
