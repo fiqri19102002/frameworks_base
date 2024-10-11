@@ -43,9 +43,8 @@
     <!-- For dynamic default font styles -->
     <java-symbol type="string" name="config_bodyFontFamily" />
 
-    <!-- Prop/KeyboxImitationHooks -->
+    <!-- PropImitationHooks -->
     <java-symbol type="array" name="config_certifiedBuildProperties" />
-    <java-symbol type="array" name="config_certifiedKeybox" />
     <java-symbol type="string" name="config_stockFingerprint" />
     <java-symbol type="string" name="config_netflixSpoofModel" />
     <java-symbol type="bool" name="config_spoofasTablet" />
