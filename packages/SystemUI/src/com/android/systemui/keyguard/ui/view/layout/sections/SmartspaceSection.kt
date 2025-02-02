@@ -71,12 +71,12 @@ constructor(
         if (!MigrateClocksToBlueprint.isEnabled) return
         if (!keyguardSmartspaceViewModel.isSmartspaceEnabled) return
         smartspaceView = smartspaceController.buildAndConnectView(constraintLayout)
-        weatherView = smartspaceController.buildAndConnectWeatherView(constraintLayout)
-        dateWeatherView =
-            smartspaceController.buildAndConnectDateView(constraintLayout) as ViewGroup
         pastVisibility = smartspaceView?.visibility ?: View.GONE
         constraintLayout.addView(smartspaceView)
         if (keyguardSmartspaceViewModel.isDateWeatherDecoupled) {
+            dateWeatherView =
+                smartspaceController.buildAndConnectDateView(constraintLayout) as ViewGroup
+            weatherView = smartspaceController.buildAndConnectWeatherView(constraintLayout)
             constraintLayout.addView(dateWeatherView)
             // Place weather right after the date, before the extras (alarm and dnd)
             val index = if (dateWeatherView?.childCount == 0) 0 else 1
@@ -163,7 +163,7 @@ constructor(
                 connect(
                     sharedR.id.bc_smartspace_view,
                     ConstraintSet.TOP,
-                    sharedR.id.date_smartspace_view,
+                    R.id.lockscreen_clock_view,
                     ConstraintSet.BOTTOM
                 )
             }
