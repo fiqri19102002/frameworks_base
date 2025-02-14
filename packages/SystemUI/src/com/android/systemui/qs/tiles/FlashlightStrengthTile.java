@@ -25,6 +25,7 @@ import android.hardware.camera2.CameraCharacteristics.Key;
 import android.hardware.camera2.CameraManager;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.UserHandle;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -87,10 +88,7 @@ public class FlashlightStrengthTile extends FlashlightTile implements TouchableQ
             // Update current percent/level and refresh the tile.
             mCurrentLevel = newStrengthLevel;
             mCurrentPercent = ((float) mCurrentLevel) / ((float) mMaxLevel);
-            Settings.System.putFloat(
-                    mContext.getContentResolver(),
-                    FLASHLIGHT_BRIGHTNESS_SETTING,
-                    mCurrentPercent);
+            writeCurrentSetting();
             refreshState(true);
         }
     };
@@ -119,10 +117,7 @@ public class FlashlightStrengthTile extends FlashlightTile implements TouchableQ
                                 view.getParent().requestDisallowInterceptTouchEvent(true);
                                 moved = true;
                                 mCurrentPercent = Math.max(0.01f, Math.min(newPct, 1));
-                                Settings.System.putFloat(
-                                        mContext.getContentResolver(),
-                                        FLASHLIGHT_BRIGHTNESS_SETTING,
-                                        mCurrentPercent);
+                                writeCurrentSetting();
                                 handleClick(null);
                             }
                             return true;
@@ -130,10 +125,7 @@ public class FlashlightStrengthTile extends FlashlightTile implements TouchableQ
                         case MotionEvent.ACTION_UP -> {
                             if (moved) {
                                 moved = false;
-                                Settings.System.putFloat(
-                                        mContext.getContentResolver(),
-                                        FLASHLIGHT_BRIGHTNESS_SETTING,
-                                        mCurrentPercent);
+                                writeCurrentSetting();
                             } else {
                                 mClicked = true;
                                 handleClick(null);
@@ -202,10 +194,11 @@ public class FlashlightStrengthTile extends FlashlightTile implements TouchableQ
         }
         float defaultPercent = ((float) mDefaultLevel) / ((float) mMaxLevel);
         mCurrentPercent =
-                Settings.System.getFloat(
+                Settings.System.getFloatForUser(
                         mContext.getContentResolver(),
                         FLASHLIGHT_BRIGHTNESS_SETTING,
-                        defaultPercent);
+                        defaultPercent,
+                        UserHandle.USER_CURRENT);
         // Register torch callback on torch strength level supported devices.
         if (mSupportsSettingFlashLevel && !mRegistered) {
             mCameraManager.registerTorchCallback(mTorchCallback, new Handler(mBgLooper));
@@ -258,15 +251,18 @@ public class FlashlightStrengthTile extends FlashlightTile implements TouchableQ
     @Override
     protected void handleUpdateState(BooleanState state, Object arg) {
         super.handleUpdateState(state, arg);
-        if (mSupportsSettingFlashLevel) {
-            String label = mHost.getContext().getString(R.string.quick_settings_flashlight_label);
-            if (state.value) {
-                label = String.format(
-                        "%s - %s%%",
-                        mHost.getContext().getString(R.string.quick_settings_flashlight_label),
-                        Math.round(mCurrentPercent * 100f));
-            }
-            state.label = label;
+
+        if (!mSupportsSettingFlashLevel) {
+            return;
+        }
+
+        state.secondaryLabel = "";
+        state.stateDescription = "";
+
+        if (state.value) {
+            int percentage = Math.round(mCurrentPercent * 100f);
+            state.secondaryLabel = String.format("On - %d%%", percentage);
+            state.stateDescription = state.secondaryLabel;
         }
     }
 
@@ -284,5 +280,13 @@ public class FlashlightStrengthTile extends FlashlightTile implements TouchableQ
             }
         }
         return null;
+    }
+
+    private void writeCurrentSetting() {
+        Settings.System.putFloatForUser(
+                mContext.getContentResolver(),
+                FLASHLIGHT_BRIGHTNESS_SETTING,
+                mCurrentPercent,
+                UserHandle.USER_CURRENT);
     }
 }
